@@ -11,12 +11,15 @@ SlashCmdList[ "LOWSPEAK" ] = function( msg )
 		print("The addon has turned them on automatically now. Please resend your message!")
 		SetCVar("nameplateShowFriends", 1)
 	else
+		local player_to_write_to = {}
 		for i = 1, 40 do
 			local unitID = "nameplate"..i
 			local name = UnitName( unitID )
 			if name then
-				if UnitIsPlayer( unitID ) and UnitIsFriend( "player", unitID ) then
-					print( name .. " will receive message" )
+				if UnitIsPlayer( unitID ) and UnitIsFriend( "player", unitID ) and CheckInteractDistance( unitID, 3 ) then
+					print(name, "while hear from you")
+					-- Should we pass name or unitID here? Nameplate ordering can change while waiting, potentially?
+					table.insert( player_to_write_to, name ) 
 				end
 			end
 		end
