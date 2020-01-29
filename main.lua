@@ -1,4 +1,6 @@
 local nameplate_shown -- Stores whether friendly nameplates are already shown, so they are not disabled by the addon.
+local message_recepients = {} -- 
+
 
 SLASH_LOWSPEAK1 = "/ss"
 SLASH_LOWSPEAK2 = "/ls"
@@ -28,6 +30,16 @@ function create_recipient_table( msg )
 		end
 	end
 	SetCVar( "nameplateShowFriends", nameplate_shown ) -- reset the display 
+	send_message_addon_channel(  ) -- send message on the adodn channel, to be recived by those who also have the addon
+	LSRP__wait( 0.2, send_message_whsiper_channel ) -- send message to all nearby people who haven't send an addon repsonse
+end
+
+function send_message_addon_channel( ... )
+	-- body
+end
+
+function send_message_whsiper_channel( ... )
+	
 end
 
 
