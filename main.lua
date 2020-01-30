@@ -51,7 +51,12 @@ function send_message_addon_channel( message_id )
 	local message_text = message_to_send[ 1 ]
 	local recipients = message_to_send[ 2 ]
 
-	local addon_message = message_id .. "\t0\t" .. message_text
+	local addon_message = "sm\t" .. message_id .. "\t0\t" .. message_text
+	
+	if #addon_message > 254 - #ADDN_PRFX then
+		addon_message = string.sub( addon_message, 1, 254 )
+	end
+	
 	for player, addon_ack_send in pairs( recipients ) do
 			SendAddonMessage( ADDN_PRFX, addon_message, "WHISPER", player );
 	end
@@ -70,11 +75,26 @@ function send_message_whsiper_channel( message_id )
 end
 
 function handle_addon_message( message, dist_type, sender )
-
+	local action, message_id, series_number, message_text = message.stringsplit("\t")
+	if action == "sm" then
+		receive_message( message_text, sender )
+		send_acknolwedgment( message_id, sender )
+	elseif action == "sa" then
+		handle_message_acknowledgement( message_text, sender )
+	end
 end
 
+function receive_message( message_text, sender )
+	print( sender, ": ", message_text )
+end
 
+function send_acknolwedgment( message_id, sender )
+	SendChatMessage( "sa\t" .. message_id, "WHISPER" , nil , sender );
+end
 
+function handle_message_acknowledgement( message_id, sender )
+	message_recipients[ message_id ][ 2 ][ sender ] = true
+end
 
 --
 -- Handle received addon messages
@@ -103,7 +123,7 @@ message_receiver_frame:SetScript( "OnEvent", eventHandler )
 -- This wait function taken from https://wowwiki.fandom.com/wiki/USERAPI_wait
 local waitTable = {};
 local waitFrame = nil;
-function LSRP__wait(delay, func, ...)
+function LSRP__wait( delay, func, ... )
 	if ( type( delay ) ~= "number" or type( func ) ~= "function" ) then
 		return false;
 	end
@@ -132,4 +152,21 @@ function LSRP__wait(delay, func, ...)
 	end
 	tinsert( waitTable, { delay, func, {...} } );
 	return true;
+end
+
+-- taken from https://stackoverflow.com/a/7615129/2532489
+local function stringsplit( inputstr, sep )
+	if sep == nil then
+		sep = "%s"
+	end
+	local t = {}
+	for str in string.gmatch(inputstr, "([^"..sep.."]+)") do
+		table.insert(t, str)
+	end
+	return t
+end
+
+
+local function starts_with(str, start)
+   return str:sub(1, #start) == start
 end
