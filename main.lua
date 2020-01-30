@@ -33,7 +33,7 @@ function create_recipient_table( msg )
 		if name and UnitIsPlayer( unitID ) and UnitIsFriend( "player", unitID ) and CheckInteractDistance( unitID, 3 ) then
 			print(name, "while hear from you")
 			-- Should we pass name or unitID here? Nameplate ordering can change while waiting, potentially?
-			table.insert( players_to_write_to, { name, false } ) 
+			players_to_write_to[ name] = false
 		end
 	end
 	message_recipients[message_id] = { msg, players_to_write_to }
@@ -43,11 +43,21 @@ function create_recipient_table( msg )
 end
 
 function send_message_addon_channel( message_id )
-	-- body
+	local message_to_send = message_recipients[ message_id ]
+	local message_text = message_to_send[ 1 ]
+	local recipients = message_to_send[ 2 ]
 end
 
 function send_message_whsiper_channel( message_id )
-	
+	local message_to_send = message_recipients[ message_id ]
+	local message_text = message_to_send[ 1 ]
+	local recipients = message_to_send[ 2 ]
+
+	for player, addon_ack_send in pairs( recipients ) do
+		if not addon_ack_send then
+			SendChatMessage(message_text ,"WHISPER" , nil , player );
+		end
+	end
 end
 
 
