@@ -58,7 +58,7 @@ function send_message_addon_channel( message_id )
 	end
 	
 	for player, addon_ack_send in pairs( recipients ) do
-			SendAddonMessage( ADDN_PRFX, addon_message, "WHISPER", player );
+			C_ChatInfo.SendAddonMessage( ADDN_PRFX, addon_message, "WHISPER", player );
 	end
 end
 
@@ -89,7 +89,7 @@ function receive_message( message_text, sender )
 end
 
 function send_acknolwedgment( message_id, sender )
-	SendChatMessage( "sa\t" .. message_id, "WHISPER" , nil , sender );
+	C_ChatInfo.SendAddonMessage( ADDN_PRFX, "sa\t" .. message_id, "WHISPER" , sender );
 end
 
 function handle_message_acknowledgement( message_id, sender )
