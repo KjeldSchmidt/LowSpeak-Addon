@@ -1,5 +1,9 @@
-local nameplate_shown -- Stores whether friendly nameplates are already shown, so they are not disabled by the addon.
-local message_recepients = {} -- 
+local nameplate_shown; -- Stores whether friendly nameplates are already shown, so they are not disabled by the addon.
+-- table of tables. Keys are message IDs, values are a table with two entries:
+	-- Message Text
+	-- Table with players as keys and a boolean indicating that an addons message acknowledgement has been received as value
+local message_recipients = {};
+local next_message_id = 0;
 
 
 SLASH_LOWSPEAK1 = "/ss"
@@ -19,26 +23,30 @@ end
 
 
 function create_recipient_table( msg )
-	local player_to_write_to = {}
+	local players_to_write_to = {}
+	local message_id = next_message_id
+	next_message_id = next_message_id + 1
+
 	for i = 1, 40 do
 		local unitID = "nameplate"..i
 		local name = UnitName( unitID )
 		if name and UnitIsPlayer( unitID ) and UnitIsFriend( "player", unitID ) and CheckInteractDistance( unitID, 3 ) then
 			print(name, "while hear from you")
 			-- Should we pass name or unitID here? Nameplate ordering can change while waiting, potentially?
-			table.insert( player_to_write_to, name ) 
+			table.insert( players_to_write_to, { name, false } ) 
 		end
 	end
+	message_recipients[message_id] = { msg, players_to_write_to }
 	SetCVar( "nameplateShowFriends", nameplate_shown ) -- reset the display 
-	send_message_addon_channel(  ) -- send message on the adodn channel, to be recived by those who also have the addon
-	LSRP__wait( 0.2, send_message_whsiper_channel ) -- send message to all nearby people who haven't send an addon repsonse
+	send_message_addon_channel( message_id ) -- send message on the adodn channel, to be recived by those who also have the addon
+	LSRP__wait( 0.2, send_message_whsiper_channel, message_id ) -- send message to all nearby people who haven't send an addon repsonse
 end
 
-function send_message_addon_channel( ... )
+function send_message_addon_channel( message_id )
 	-- body
 end
 
-function send_message_whsiper_channel( ... )
+function send_message_whsiper_channel( message_id )
 	
 end
 
