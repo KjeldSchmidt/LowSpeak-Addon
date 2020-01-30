@@ -6,6 +6,10 @@ local message_recipients = {};
 local next_message_id = 0;
 
 
+local ADDN_PRFX = "LSRP"
+C_ChatInfo.RegisterAddonMessagePrefix( ADDN_PRFX )
+
+
 SLASH_LOWSPEAK1 = "/ss"
 SLASH_LOWSPEAK2 = "/ls"
 SLASH_LOWSPEAK3 = "/qs"
@@ -46,6 +50,11 @@ function send_message_addon_channel( message_id )
 	local message_to_send = message_recipients[ message_id ]
 	local message_text = message_to_send[ 1 ]
 	local recipients = message_to_send[ 2 ]
+
+	local addon_message = message_id .. "\t0\t" .. message_text
+	for player, addon_ack_send in pairs( recipients ) do
+			SendAddonMessage( ADDN_PRFX, addon_message, "WHISPER", player );
+	end
 end
 
 function send_message_whsiper_channel( message_id )
@@ -55,14 +64,33 @@ function send_message_whsiper_channel( message_id )
 
 	for player, addon_ack_send in pairs( recipients ) do
 		if not addon_ack_send then
-			SendChatMessage(message_text ,"WHISPER" , nil , player );
+			SendChatMessage( message_text, "WHISPER" , nil , player );
 		end
 	end
+end
+
+function handle_addon_message( message, dist_type, sender )
+
 end
 
 
 
 
+--
+-- Handle received addon messages
+--
+
+local message_receiver_frame = CreateFrame( "Frame", "message_receiver_frame" )
+message_receiver_frame:RegisterEvent( "CHAT_MSG_ADDON" )
+local function eventHandler( self, event, ... )
+	if event == "CHAT_MSG_ADDON" then
+		local prefix, message, dist_type, sender = ...
+		if prefix == ADDN_PRFX then
+			handle_addon_message( message, dist_type, sender )
+		end
+	end
+end
+message_receiver_frame:SetScript( "OnEvent", eventHandler )
 
 
 
