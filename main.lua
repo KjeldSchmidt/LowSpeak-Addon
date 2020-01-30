@@ -1,3 +1,4 @@
+local player_name = UnitName("player")
 local nameplate_shown; -- Stores whether friendly nameplates are already shown, so they are not disabled by the addon.
 -- table of tables. Keys are message IDs, values are a table with two entries:
 	-- Message Text
@@ -17,16 +18,16 @@ SLASH_LOWSPEAK4 = "/lowspeak"
 SLASH_LOWSPEAK5 = "/low"
 SLASH_LOWSPEAK6 = "/quiet"
 
-SlashCmdList[ "LOWSPEAK" ] = function( msg )
+SlashCmdList[ "LOWSPEAK" ] = function( message )
 	nameplate_shown = GetCVarBool( "nameplateShowFriends" )
 	if not nameplate_shown then
 		SetCVar( "nameplateShowFriends", true )
 	end
-	LSRP__wait( 0.1, create_recipient_table, msg )
+	LSRP__wait( 0.1, create_recipient_table, message )
 end
 
 
-function create_recipient_table( msg )
+function create_recipient_table( message )
 	local players_to_write_to = {}
 	local message_id = next_message_id
 	next_message_id = next_message_id + 1
@@ -35,15 +36,15 @@ function create_recipient_table( msg )
 		local unitID = "nameplate"..i
 		local name = UnitName( unitID )
 		if name and UnitIsPlayer( unitID ) and UnitIsFriend( "player", unitID ) and CheckInteractDistance( unitID, 3 ) then
-			print(name, "while hear from you")
 			-- Should we pass name or unitID here? Nameplate ordering can change while waiting, potentially?
-			players_to_write_to[ name] = false
+			players_to_write_to[ name ] = false
 		end
 	end
-	message_recipients[message_id] = { msg, players_to_write_to }
+	message_recipients[message_id] = { message, players_to_write_to }
 	SetCVar( "nameplateShowFriends", nameplate_shown ) -- reset the display 
+	display_message( message, player_name )
 	send_message_addon_channel( message_id ) -- send message on the adodn channel, to be recived by those who also have the addon
-	LSRP__wait( 0.2, send_message_whsiper_channel, message_id ) -- send message to all nearby people who haven't send an addon repsonse
+	LSRP__wait( 1, send_message_whsiper_channel, message_id ) -- send message to all nearby people who haven't send an addon repsonse
 end
 
 function send_message_addon_channel( message_id )
@@ -75,17 +76,20 @@ function send_message_whsiper_channel( message_id )
 end
 
 function handle_addon_message( message, dist_type, sender )
-	local action, message_id, series_number, message_text = message.stringsplit("\t")
+	local split_message = stringsplit( message, "\t" )
+	local sender = stringsplit( sender, "-" )[1]
+	local action, message_id, series_number, message_text = split_message[1], split_message[2], split_message[3], split_message[4]
+	message_id = tonumber( message_id )
 	if action == "sm" then
 		receive_message( message_text, sender )
 		send_acknolwedgment( message_id, sender )
 	elseif action == "sa" then
-		handle_message_acknowledgement( message_text, sender )
+		handle_message_acknowledgement( message_id, sender )
 	end
 end
 
 function receive_message( message_text, sender )
-	print( sender, ": ", message_text )
+	display_message( message_text, sender )
 end
 
 function send_acknolwedgment( message_id, sender )
@@ -113,6 +117,14 @@ end
 message_receiver_frame:SetScript( "OnEvent", eventHandler )
 
 
+
+--
+-- Display Code
+--
+
+function display_message( message, player_name )
+	print( player_name .. ":", message )
+end
 
 
 
@@ -155,7 +167,7 @@ function LSRP__wait( delay, func, ... )
 end
 
 -- taken from https://stackoverflow.com/a/7615129/2532489
-local function stringsplit( inputstr, sep )
+function stringsplit( inputstr, sep )
 	if sep == nil then
 		sep = "%s"
 	end
