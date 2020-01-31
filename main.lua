@@ -6,9 +6,15 @@ local nameplate_shown; -- Stores whether friendly nameplates are already shown, 
 local message_recipients = {};
 local next_message_id = 0;
 
-
 local ADDN_PRFX = "LSRP"
 C_ChatInfo.RegisterAddonMessagePrefix( ADDN_PRFX )
+
+
+
+SLASH_FANCYPRINT1 = "/fp"
+SlashCmdList["FANCYPRINT"] = function( msg )
+	print( "|cff11ff11" .. "Printed:|r " .. msg )
+end
 
 
 SLASH_LOWSPEAK1 = "/ss"
@@ -118,14 +124,44 @@ message_receiver_frame:SetScript( "OnEvent", eventHandler )
 
 
 
+
+
+
 --
 -- Display Code
 --
 
+
+
 function display_message( message, player_name )
-	print( player_name .. ":", message )
+	local show_name = try_get_trp3_name( player_name )
+	local clickable_name = make_name_clickable( show_name, player_name )
+	print( "[" .. clickable_name .. "] says quietly:", message )
 end
 
+function make_name_clickable( show_name, player_name )
+	return "|Hplayer:" .. player_name .. "|h" .. show_name .. "|h"
+end
+
+
+
+--
+-- TRP3 integration code 
+--
+
+function try_get_trp3_name( player_name )
+	local unitID = IsAddOnLoaded("Totalrp3") and TRP3_API.utils.str.getUnitID("player")
+	local fullName = unitID and TRP3_API.chat.getFullnameForUnitUsingChatMethod(unitID)
+	local color = TRP3_API.utils.color.getUnitCustomColor(unitID)
+	if fullName then
+		if color then
+			fullName = color:WrapTextInColorCode(fullName)
+		end
+		return fullName
+	else
+		return player_name
+	end
+end
 
 
 --
