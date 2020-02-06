@@ -137,6 +137,8 @@ function display_message( message, player_name )
 	local show_name = try_get_trp3_name( player_name )
 	local colored_name = try_get_trp3_color( show_name )
 	local clickable_name = make_name_clickable( colored_name, player_name )
+	local time_string = date( GetCVar("showTimestamps") )
+	print( time_string .. "[" .. clickable_name .. "] says quietly:", message )
 end
 
 function make_name_clickable( show_name, player_name )
