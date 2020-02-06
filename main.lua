@@ -134,8 +134,14 @@ message_receiver_frame:SetScript( "OnEvent", eventHandler )
 
 
 function display_message( message, player_name )
-	local show_name = try_get_trp3_name( player_name )
-	local clickable_name = make_name_clickable( show_name, player_name )
+	local trp_name_success, show_name = pcall( try_get_trp3_name, player_name )
+	local name_to_use = ""
+	if trp_name_success then
+		name_to_use = show_name
+	else
+		name_to_use = player_name
+	end
+	local clickable_name = make_name_clickable( name_to_use, player_name )
 	print( "[" .. clickable_name .. "] says quietly:", message )
 end
 
@@ -150,7 +156,7 @@ end
 --
 
 function try_get_trp3_name( player_name )
-	local unitID = IsAddOnLoaded("Totalrp3") and TRP3_API.utils.str.getUnitID("player")
+	local unitID = IsAddOnLoaded("Totalrp3") and TRP3_API.utils.str.getUnitID( player_name )
 	local fullName = unitID and TRP3_API.chat.getFullnameForUnitUsingChatMethod(unitID)
 	local color = TRP3_API.utils.color.getUnitCustomColor(unitID)
 	if fullName then

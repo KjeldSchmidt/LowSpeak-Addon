@@ -1,6 +1,6 @@
 ## Interface: 11303
 ## Title: LowSpeak
 ## Author: Kjeld Schmidt
-## Version: 0.9
+## Version: 0.9.1
 
 main.lua
