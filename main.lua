@@ -135,8 +135,7 @@ message_receiver_frame:SetScript( "OnEvent", eventHandler )
 
 function display_message( message, player_name )
 	local show_name = try_get_trp3_name( player_name )
-	local colored_name = try_get_trp3_color( show_name )
-	local clickable_name = make_name_clickable( colored_name, player_name )
+	local clickable_name = make_name_clickable( show_name, player_name )
 	local time_string = date( GetCVar("showTimestamps") )
 	print( time_string .. "[" .. clickable_name .. "] says quietly:", message )
 end
@@ -152,22 +151,14 @@ end
 --
 
 function try_get_trp3_name( player_name )
-	local addon_loaded = IsAddOnLoaded("Totalrp3")
-	local id_ok, unitID = pcall( TRP3_API.utils.str.getUnitID, player_name )
-	local name_ok, fullName = pcall( TRP3_API.chat.getFullnameForUnitUsingChatMethod, unitID )
-	if addon_loaded and id_ok and name_ok then
+	local unitID = IsAddOnLoaded("Totalrp3") and TRP3_API.utils.str.getUnitID( player_name )
+	local fullName = unitID and TRP3_API.chat.getFullnameForUnitUsingChatMethod(unitID)
+	local color = TRP3_API.utils.color.getUnitCustomColor(unitID)
+	if fullName then
+		if color then
+			fullName = color:WrapTextInColorCode(fullName)
+		end
 		return fullName
-	else 
-		return player_name
-	end
-end
-
-function try_get_trp3_color( player_name )
-	local addon_loaded = IsAddOnLoaded("Totalrp3")
-	local id_ok, unitID = pcall( TRP3_API.utils.str.getUnitID, player_name )
-	local color_ok, color = pcall( TRP3_API.utils.color.getUnitCustomColor, unitID )
-	if addon_loaded and id_ok and color_ok and color then
-		return color:WrapTextInColorCode( player_name )
 	else
 		return player_name
 	end
